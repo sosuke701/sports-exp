@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>運彩模擬實驗</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#6a7280;--line:#e3e6ea;--win:#1a7f37;--loss:#c62828;--pend:#8a6d00;--acc:#2f5bd3}
+@media (prefers-color-scheme:dark){:root{--bg:#121417;--card:#1b1e23;--ink:#e8eaed;--muted:#9aa1ab;--line:#2b3037;--win:#4cc06b;--loss:#ef6461;--pend:#d9b33c;--acc:#7d9cff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:8px 0 2px}h2{font-size:16px;margin:24px 0 8px}
+.sub{color:var(--muted);font-size:13px}
+#lock{max-width:340px;margin:18vh auto;padding:24px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+#lock input{width:100%;padding:10px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+#lock button{margin-top:10px;width:100%;padding:10px;font-size:16px;border:0;border-radius:8px;background:var(--acc);color:#fff}
+.err{color:var(--loss);font-size:13px;min-height:18px;margin-top:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0}
+.hd{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:600}
+.leg{display:flex;justify-content:space-between;gap:8px;border-top:1px dashed var(--line);padding:6px 0;font-size:14px}
+.leg:first-of-type{border-top:0}.leg .m{color:var(--muted);font-size:12px}
+.win{color:var(--win)}.loss{color:var(--loss)}.pending{color:var(--pend)}.void{color:var(--muted)}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:14px}
+th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500;font-size:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:4px 12px;font-size:13px}
+.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.note{font-size:12px;color:var(--muted);margin-top:24px}
+.why{font-size:12px;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+<div id="lock">
+  <div style="font-weight:600;margin-bottom:10px">運彩模擬實驗</div>
+  <input id="pw" type="password" placeholder="請輸入密碼" autocomplete="current-password">
+  <button id="go">進入</button>
+  <div class="err" id="err"></div>
+</div>
+<div class="wrap" id="app" hidden></div>
+<script>
+const P=__PAYLOAD__;
+const ub=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function dec(pw){
+  const k0=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  const k=await crypto.subtle.deriveKey({name:'PBKDF2',salt:ub(P.s),iterations:P.n,hash:'SHA-256'},k0,{name:'AES-GCM',length:256},false,['decrypt']);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:ub(P.i)},k,ub(P.c));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function unlock(pw,remember){
+  try{const d=await dec(pw);if(remember){try{sessionStorage.setItem('pw',pw)}catch(e){}}
+    document.getElementById('lock').hidden=true;render(d);}
+  catch(e){document.getElementById('err').textContent='密碼錯誤';}
+}
+document.getElementById('go').onclick=()=>unlock(document.getElementById('pw').value,true);
+document.getElementById('pw').onkeydown=e=>{if(e.key==='Enter')document.getElementById('go').click()};
+try{const s=sessionStorage.getItem('pw');if(s)unlock(s,false)}catch(e){}
+
+const NAMES={A:'A 數據商模型',B:'B 戰績模型',C:'C 專家推薦',D:'D 國外盤口',E:'E 對照組'};
+const MARK={win:'✅',loss:'❌',pending:'⏳',void:'↩️'};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const t=iso=>{if(!iso)return'';const d=new Date(iso);const p=n=>String(n).padStart(2,'0');
+  const tw=new Date(d.getTime()+8*3600e3);return `${p(tw.getUTCMonth()+1)}/${p(tw.getUTCDate())} ${p(tw.getUTCHours())}:${p(tw.getUTCMinutes())}`};
+function stats(T){
+  const s={};for(const k of 'ABCDE')s[k]={n:0,set:0,win:0,stake:0,ret:0,lw:0,ls:0};
+  for(const x of T){const r=s[x.source];if(!r)continue;r.n++;
+    if(x.status!=='pending'){r.set++;r.stake+=x.stake||100;r.ret+=x.ret||0;if(x.status==='win')r.win++;}
+    for(const l of x.legs||[]){if(l.result==='win'){r.lw++;r.ls++}else if(l.result==='loss')r.ls++;}}
+  return s;
+}
+let filter='all';
+function render(D){
+  const T=(D.tickets||[]).slice().sort((a,b)=>(b.created||'').localeCompare(a.created||'')||a.source.localeCompare(b.source));
+  const S=stats(T);
+  const rows=Object.entries(S).map(([k,r])=>({k,...r,hit:r.ls?r.lw/r.ls:null,roi:r.stake?r.ret/r.stake:null}))
+    .sort((a,b)=>(b.roi??-1)-(a.roi??-1)||(b.hit??-1)-(a.hit??-1));
+  const pct=v=>v==null?'—':(v*100).toFixed(0)+'%';
+  let h=`<h1>運彩模擬實驗</h1><div class="sub">實驗期間 2026-11-07 ～ 11-13｜最後更新 ${esc(D.lastRun||D.updated||'')}｜每張 100 元，純模擬未下注</div>`;
+  h+=`<h2>各來源累計（依回收率排序）</h2><table><tr><th>來源</th><th>張數</th><th>已結算</th><th>中獎</th><th>單關命中</th><th>回收率</th></tr>`;
+  for(const r of rows)h+=`<tr><td>${NAMES[r.k]}</td><td>${r.n}</td><td>${r.set}</td><td>${r.win}</td><td>${r.ls?`${r.lw}/${r.ls} (${pct(r.hit)})`:'—'}</td><td>${r.stake?`${pct(r.roi)}<div class="m sub">${Math.round(r.ret)}/${r.stake}</div>`:'—'}</td></tr>`;
+  h+=`</table>`;
+  const pend=T.filter(x=>x.status==='pending').length;
+  h+=`<h2>所有串關</h2><div class="tabs">`+[['all','全部 '+T.length],['pending','待開獎 '+pend],['win','中獎'],['loss','未中'],...'ABCDE'.split('').map(k=>[k,k])].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
+  h+=`<div class="note">✅ 過關　❌ 沒過　⏳ 未開獎　↩️ 退款（以 1 計）。足球只算 90 分鐘（含傷停）。</div>`;
+  const app=document.getElementById('app');app.innerHTML=h;app.hidden=false;
+  app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render(D)});
+  const L=T.filter(x=>filter==='all'||x.status===filter||x.source===filter);
+  let cur='',o='';
+  for(const x of L){
+    if(x.round!==cur){cur=x.round;o+=`<h2>${esc(cur)}</h2>`;}
+    const st=x.status==='win'?`<span class="win">✅ 中獎（回 ${Math.round(x.ret)} 元）</span>`:x.status==='loss'?`<span class="loss">❌ 未中</span>`:`<span class="pending">⏳ 待開獎（中了回 ${Math.round(100*x.odds)} 元）</span>`;
+    o+=`<div class="card"><div class="hd"><span>${NAMES[x.source]||x.source}｜總賠率 ${(+x.odds).toFixed(3)}</span>${st}</div>`;
+    for(const l of x.legs||[]){
+      o+=`<div class="leg"><div>${esc(l.match)}<div class="m">${esc(l.market)}｜${esc(l.pick)} ${l.odds}｜${t(l.start)}${l.note?'｜'+esc(l.note):''}</div></div><div class="${l.result}">${MARK[l.result]||''}</div></div>`;
+    }
+    if(x.why)o+=`<div class="why">${esc(x.why)}</div>`;
+    o+=`</div>`;
+  }
+  document.getElementById('list').innerHTML=o||'<div class="sub">沒有符合的單</div>';
+}
+</script>
+</body>
+</html>
