@@ -57,13 +57,13 @@ document.getElementById('go').onclick=()=>unlock(document.getElementById('pw').v
 document.getElementById('pw').onkeydown=e=>{if(e.key==='Enter')document.getElementById('go').click()};
 try{const s=sessionStorage.getItem('pw');if(s)unlock(s,false)}catch(e){}
 
-const NAMES={A:'A 數據商模型',B:'B 戰績模型',C:'C 專家推薦',D:'D 國外盤口',E:'E 對照組'};
+const NAMES={A:'A 數據商模型',B:'B 戰績模型',C:'C 專家推薦',D:'D 國外盤口',E:'E 對照組',F:'Claude 精選'};
 const MARK={win:'✅',loss:'❌',pending:'⏳',void:'↩️'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const t=iso=>{if(!iso)return'';const d=new Date(iso);const p=n=>String(n).padStart(2,'0');
   const tw=new Date(d.getTime()+8*3600e3);return `${p(tw.getUTCMonth()+1)}/${p(tw.getUTCDate())} ${p(tw.getUTCHours())}:${p(tw.getUTCMinutes())}`};
-function stats(T){
-  const s={};for(const k of 'ABCDE')s[k]={n:0,set:0,win:0,stake:0,ret:0,lw:0,ls:0};
+function stats(T,keys){
+  const s={};for(const k of keys)s[k]={n:0,set:0,win:0,stake:0,ret:0,lw:0,ls:0};
   for(const x of T){const r=s[x.source];if(!r)continue;r.n++;
     if(x.status!=='pending'){r.set++;r.stake+=x.stake||100;r.ret+=x.ret||0;if(x.status==='win')r.win++;}
     for(const l of x.legs||[]){if(l.result==='win'){r.lw++;r.ls++}else if(l.result==='loss')r.ls++;}}
@@ -71,22 +71,23 @@ function stats(T){
 }
 let filter='all', page='main';
 try{page=localStorage.getItem('page')||'main'}catch(e){}
-const PAGES={main:{key:'tickets',title:'不讓分／大小（主實驗）'},special:{key:'tickets2',title:'綜合玩法'}};
+const PAGES={main:{key:'tickets',title:'主實驗',keys:'ABCDE'},special:{key:'tickets2',title:'綜合玩法',keys:'ABCDE'},claude:{key:'tickets3',title:'Claude 精選',keys:'F'}};
 function render(D){
   if(!PAGES[page])page='main';
   const T=(D[PAGES[page].key]||[]).slice().sort((a,b)=>(b.created||'').localeCompare(a.created||'')||a.source.localeCompare(b.source));
-  const S=stats(T);
+  const S=stats(T,PAGES[page].keys);
   const rows=Object.entries(S).map(([k,r])=>({k,...r,hit:r.ls?r.lw/r.ls:null,roi:r.stake?r.ret/r.stake:null}))
     .sort((a,b)=>(b.roi??-1)-(a.roi??-1)||(b.hit??-1)-(a.hit??-1));
   const pct=v=>v==null?'—':(v*100).toFixed(0)+'%';
   let h=`<h1>運彩模擬實驗</h1><div class="sub">實驗期間 2026-11-07 ～ 11-13｜最後更新 ${esc(D.lastRun||D.updated||'')}｜每張 100 元，純模擬未下注</div>`;
   h+=`<div class="ptabs">`+Object.entries(PAGES).map(([k,v])=>`<button data-p="${k}" class="${page===k?'on':''}">${v.title}</button>`).join('')+`</div>`;
+  if(page==='claude')h+=`<div class="sub">Claude 綜合所有資料來源（數據模型、國外盤口去水、專家共識、戰績）做判斷，不限玩法、每關賠率至少 1.30，每輪只出一張最有把握的 3 串 1；沒有夠好的選項時該輪不出單。</div>`;
   if(page==='special')h+=`<div class="sub">不限玩法（不讓分、大小、讓分、總進球數、勝分差、兩隊都進球等），每關賠率至少 1.30，五個來源各組 3 串 1。</div>`;
   h+=`<h2>各來源累計（依回收率排序）</h2><table><tr><th>來源</th><th>張數</th><th>已結算</th><th>中獎</th><th>單關命中</th><th>回收率</th></tr>`;
   for(const r of rows)h+=`<tr><td>${NAMES[r.k]}</td><td>${r.n}</td><td>${r.set}</td><td>${r.win}</td><td>${r.ls?`${r.lw}/${r.ls} (${pct(r.hit)})`:'—'}</td><td>${r.stake?`${pct(r.roi)}<div class="m sub">${Math.round(r.ret)}/${r.stake}</div>`:'—'}</td></tr>`;
   h+=`</table>`;
   const pend=T.filter(x=>x.status==='pending').length;
-  h+=`<h2>所有串關</h2><div class="tabs">`+[['all','全部 '+T.length],['pending','待開獎 '+pend],['win','中獎'],['loss','未中'],...'ABCDE'.split('').map(k=>[k,k])].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
+  h+=`<h2>所有串關</h2><div class="tabs">`+[['all','全部 '+T.length],['pending','待開獎 '+pend],['win','中獎'],['loss','未中'],...(page==='claude'?[]:'ABCDE'.split('').map(k=>[k,k]))].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
   h+=`<div class="note">✅ 過關　❌ 沒過　⏳ 未開獎　↩️ 退款（以 1 計）。足球只算 90 分鐘（含傷停）。</div>`;
   const app=document.getElementById('app');app.innerHTML=h;app.hidden=false;
   app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render(D)});
@@ -103,7 +104,7 @@ function render(D){
     if(x.why)o+=`<div class="why">${esc(x.why)}</div>`;
     o+=`</div>`;
   }
-  document.getElementById('list').innerHTML=o||`<div class="sub">${T.length?'沒有符合的單':'這一頁還沒有串關，下一個完整輪（06:51／11:51／18:51）開始建立。'}</div>`;
+  document.getElementById('list').innerHTML=o||`<div class="sub">${T.length?'沒有符合的單':'這一頁還沒有串關，下一輪排程（02:51／06:51／11:51／15:51／18:51）開始建立。'}</div>`;
 }
 </script>
 </body>
