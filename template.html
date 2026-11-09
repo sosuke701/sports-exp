@@ -57,7 +57,7 @@ document.getElementById('go').onclick=()=>unlock(document.getElementById('pw').v
 document.getElementById('pw').onkeydown=e=>{if(e.key==='Enter')document.getElementById('go').click()};
 try{const s=sessionStorage.getItem('pw');if(s)unlock(s,false)}catch(e){}
 
-const NAMES={A:'A 數據商模型',B:'B 戰績模型',C:'C 專家推薦',D:'D 國外盤口',E:'E 對照組',F:'Claude 精選'};
+const NAMES={A:'A 數據商模型',B:'B 戰績模型',C:'C 專家推薦',D:'D 國外盤口',E:'E 對照組',F:'精選・穩健',G:'精選・平衡',H:'精選・價值'};
 const MARK={win:'✅',loss:'❌',pending:'⏳',void:'↩️'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const t=iso=>{if(!iso)return'';const d=new Date(iso);const p=n=>String(n).padStart(2,'0');
@@ -71,7 +71,7 @@ function stats(T,keys){
 }
 let filter='all', page='main';
 try{page=localStorage.getItem('page')||'main'}catch(e){}
-const PAGES={main:{key:'tickets',title:'主實驗',keys:'ABCDE'},special:{key:'tickets2',title:'綜合玩法',keys:'ABCDE'},claude:{key:'tickets3',title:'Claude 精選',keys:'F'}};
+const PAGES={main:{key:'tickets',title:'主實驗',keys:'ABCDE'},special:{key:'tickets2',title:'綜合玩法',keys:'ABCDE'},claude:{key:'tickets3',title:'Claude 精選',keys:'FGH'}};
 function render(D){
   if(!PAGES[page])page='main';
   const T=(D[PAGES[page].key]||[]).slice().sort((a,b)=>(b.created||'').localeCompare(a.created||'')||a.source.localeCompare(b.source));
@@ -81,13 +81,13 @@ function render(D){
   const pct=v=>v==null?'—':(v*100).toFixed(0)+'%';
   let h=`<h1>運彩模擬實驗</h1><div class="sub">實驗期間 2026-11-07 ～ 11-13｜最後更新 ${esc(D.lastRun||D.updated||'')}｜每張 100 元，純模擬未下注</div>`;
   h+=`<div class="ptabs">`+Object.entries(PAGES).map(([k,v])=>`<button data-p="${k}" class="${page===k?'on':''}">${v.title}</button>`).join('')+`</div>`;
-  if(page==='claude')h+=`<div class="sub">Claude 綜合所有資料來源（數據模型、國外盤口去水、專家共識、戰績）做判斷，不限玩法、每關賠率至少 1.30，每輪只出一張最有把握的 3 串 1；沒有夠好的選項時該輪不出單。</div>`;
+  if(page==='claude')h+=`<div class="sub">Claude 綜合所有資料來源（數據模型、國外盤口去水、專家共識、戰績）做判斷，不限玩法、每關賠率至少 1.30，每輪出 3 張 3 串 1：穩健（命中率最高）、平衡（命中率與期望值兼顧）、價值（期望值最高）；沒有夠好的選項時該張不出。</div>`;
   if(page==='special')h+=`<div class="sub">不限玩法（不讓分、大小、讓分、總進球數、勝分差、兩隊都進球等），每關賠率至少 1.30，五個來源各組 3 串 1。</div>`;
   h+=`<h2>各來源累計（依回收率排序）</h2><table><tr><th>來源</th><th>張數</th><th>已結算</th><th>中獎</th><th>單關命中</th><th>回收率</th></tr>`;
   for(const r of rows)h+=`<tr><td>${NAMES[r.k]}</td><td>${r.n}</td><td>${r.set}</td><td>${r.win}</td><td>${r.ls?`${r.lw}/${r.ls} (${pct(r.hit)})`:'—'}</td><td>${r.stake?`${pct(r.roi)}<div class="m sub">${Math.round(r.ret)}/${r.stake}</div>`:'—'}</td></tr>`;
   h+=`</table>`;
   const pend=T.filter(x=>x.status==='pending').length;
-  h+=`<h2>所有串關</h2><div class="tabs">`+[['all','全部 '+T.length],['pending','待開獎 '+pend],['win','中獎'],['loss','未中'],...(page==='claude'?[]:'ABCDE'.split('').map(k=>[k,k]))].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
+  h+=`<h2>所有串關</h2><div class="tabs">`+[['all','全部 '+T.length],['pending','待開獎 '+pend],['win','中獎'],['loss','未中'],...(page==='claude'?[['F','穩健'],['G','平衡'],['H','價值']]:'ABCDE'.split('').map(k=>[k,k]))].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
   h+=`<div class="note">✅ 過關　❌ 沒過　⏳ 未開獎　↩️ 退款（以 1 計）。足球只算 90 分鐘（含傷停）。</div>`;
   const app=document.getElementById('app');app.innerHTML=h;app.hidden=false;
   app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render(D)});
