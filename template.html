@@ -6,88 +6,120 @@
 <meta name="robots" content="noindex,nofollow">
 <title>運彩模擬實驗</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#6a7280;--line:#e3e6ea;--win:#1a7f37;--loss:#c62828;--pend:#8a6d00;--acc:#2f5bd3}
-@media (prefers-color-scheme:dark){:root{--bg:#121417;--card:#1b1e23;--ink:#e8eaed;--muted:#9aa1ab;--line:#2b3037;--win:#4cc06b;--loss:#ef6461;--pend:#d9b33c;--acc:#7d9cff}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
-.wrap{max-width:760px;margin:0 auto;padding:16px 16px 40px}
-h1{font-size:22px;margin:8px 0 4px;letter-spacing:.5px}
-h2{font-size:15px;margin:26px 0 8px;color:var(--muted);font-weight:600}
-.sub{color:var(--muted);font-size:13px}
+:root{--bg:#f3f5f9;--card:#fff;--ink:#0f172a;--sub:#475569;--muted:#64748b;--line:#e2e8f0;--track:#e8edf3;--win:#15803d;--loss:#dc2626;--pend:#b45309;--acc:#1d4ed8;--tick:#0f172a;--shadow:0 1px 2px rgba(15,23,42,.05),0 4px 14px rgba(15,23,42,.04)}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#121a2b;--ink:#e6edf7;--sub:#b3c0d4;--muted:#8b9ab0;--line:#223049;--track:#1c2840;--win:#4ade80;--loss:#f87171;--pend:#fbbf24;--acc:#7aa2ff;--tick:#e6edf7;--shadow:0 1px 2px rgba(0,0,0,.3)}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
 button{cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
-button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-#lock{max-width:340px;margin:18vh auto;padding:24px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.06)}
-#lock input{width:100%;padding:11px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
-#lock button{margin-top:10px;width:100%;padding:11px;font-size:16px;border:0;border-radius:8px;background:var(--acc);color:#fff}
-#lock button:active{opacity:.85}
-.err{color:var(--loss);font-size:13px;min-height:18px;margin-top:6px}
-.sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 4px}
-.sum div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center}
-.sum b{display:block;font-size:19px;line-height:1.3}.sum span{font-size:11px;color:var(--muted)}
-.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0}
-.card.s-win{border-left-color:var(--win)}.card.s-loss{border-left-color:var(--loss)}.card.s-pending{border-left-color:var(--pend)}
-.hd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-weight:600;margin-bottom:4px}
-.hd .odds{font-weight:400;color:var(--muted);font-size:13px;margin-left:6px}
-.st{font-size:13px;padding:2px 10px;border-radius:12px;background:var(--bg);white-space:nowrap}
-.leg{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px dashed var(--line);padding:8px 0;font-size:14px}
-.leg:first-of-type{border-top:0}.leg .m{color:var(--muted);font-size:12px;margin-top:1px}
-.leg .r{font-size:18px;flex:none}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 48px}
 .win{color:var(--win)}.loss{color:var(--loss)}.pending{color:var(--pend)}.void{color:var(--muted)}
-.tbw{overflow-x:auto;border-radius:10px;-webkit-overflow-scrolling:touch}
+.sub{color:var(--muted);font-size:13px}
+.warn{color:var(--pend);font-size:11px;font-weight:600;margin-left:6px;padding:1px 6px;border:1px solid currentColor;border-radius:999px;white-space:nowrap}
+.pm{color:var(--muted);font-size:12px;font-weight:400}
+
+/* 鎖定畫面 */
+#lock{max-width:340px;margin:18vh auto;padding:28px 24px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+#lock input{width:100%;padding:11px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+#lock button{margin-top:12px;width:100%;padding:11px;font-size:16px;border:0;border-radius:10px;background:var(--acc);color:#fff;font-weight:600}
+.err{color:var(--loss);font-size:13px;min-height:18px;margin-top:6px}
+
+/* 頂部 */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+h1{font-size:24px;line-height:1.2;margin:0;font-weight:800;letter-spacing:.3px}
+.meta{display:flex;flex-wrap:wrap;gap:2px 14px;color:var(--muted);font-size:12px;margin-top:6px}
+.ptabs{position:sticky;top:0;z-index:10;display:flex;gap:4px;margin:16px -4px 14px;padding:6px 4px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px)}
+.ptabs button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--sub);padding:9px 6px;font-size:14px;border-radius:10px;font-weight:500}
+.ptabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+
+/* 區塊 */
+.sec{margin:26px 0 10px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.sec h2{margin:0;font-size:16px;font-weight:700}
+.sec span{font-size:12px;color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+
+/* 總覽 */
+.hero{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px 16px}
+.kpi small{display:block;color:var(--muted);font-size:12px;letter-spacing:.3px}
+.kpi b{display:block;font-size:28px;line-height:1.25;font-weight:800}
+.kpi.main b{font-size:38px}.kpi em{font-style:normal;font-size:12px;color:var(--muted)}
+.sb{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--track);margin:14px 0 6px}
+.sb i{display:block;height:100%}.sb .w{background:var(--win)}.sb .l{background:var(--loss)}.sb .p{background:var(--pend);opacity:.55}
+.sbl{display:flex;gap:16px;font-size:12px;color:var(--muted)}.sbl i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+.note-box{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:12px;padding:12px 14px;margin:12px 0;font-size:14px;color:var(--sub);box-shadow:var(--shadow)}
+.note-box.pd{border-left-color:var(--pend)}.note-box b{color:var(--ink)}
+.desc{font-size:13px;color:var(--muted);margin:10px 2px}
+
+/* 排行 */
+.rkh,.rk{display:grid;grid-template-columns:26px 168px 92px minmax(180px,1fr) 170px;gap:0 14px;align-items:center}
+.rkh{padding:0 16px 6px;font-size:11px;color:var(--muted);letter-spacing:.4px}
+.rkh .mid{display:flex;justify-content:space-between}
+.rk{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:8px 0;box-shadow:var(--shadow)}
+.rk .no{width:24px;height:24px;border-radius:50%;background:var(--track);color:var(--sub);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.rk .no.first{background:var(--ink);color:var(--bg)}
+.rk .nm{font-weight:700;display:flex;align-items:center;gap:8px}.rk .nm i{width:10px;height:10px;border-radius:3px;flex:none}
+.rk .ct{font-size:12px;color:var(--muted);margin-top:1px}
+.rk .rv{font-size:22px;font-weight:800;line-height:1.2}
+.rk .hit{font-size:13px;line-height:1.4}.rk .hit b{font-size:16px}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:6px}
+.chip.win{background:rgba(21,128,61,.12)}.chip.loss{background:rgba(220,38,38,.12)}
+.strip{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:3px;margin-top:10px}
+.strip i{width:12px;height:12px;border-radius:3px;background:var(--track)}.strip .w{background:var(--win)}.strip .l{background:var(--loss)}.strip .p{background:transparent;border:1.5px dashed var(--pend)}
+.trk{position:relative;height:14px;border-radius:7px;background:var(--track)}
+.trk .band{position:absolute;top:0;bottom:0;background:var(--ink);opacity:.13;border-radius:7px}
+.trk .f2{position:absolute;top:3px;bottom:3px;border-radius:4px}.trk .f2.win{background:var(--win)}.trk .f2.loss{background:var(--loss)}
+.trk .mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--tick);opacity:.8}
+.trk.thin{height:8px;flex:1}.trk .f{position:absolute;left:0;top:0;bottom:0;border-radius:4px}.trk .f.acc{background:var(--acc)}.trk .f.gry{background:var(--muted);opacity:.55}
+.hb{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:12px;color:var(--muted)}.hb .hl{width:28px}.hb .hv{width:38px;text-align:right;color:var(--ink)}
+
+/* 走勢圖 */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:10px}.chart .ref{stroke:var(--muted);stroke-dasharray:4 3}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--sub);margin-top:8px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* 表格 */
+.tbw{overflow-x:auto;border-radius:12px;-webkit-overflow-scrolling:touch}
 table{width:100%;min-width:430px;border-collapse:collapse;background:var(--card);border:1px solid var(--line);font-size:14px}
-th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}
 tr:last-child td{border-bottom:0}
 th{color:var(--muted);font-weight:500;font-size:12px;background:var(--bg)}
-td .m{font-size:11px}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:6px 14px;font-size:13px}
-.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-.ptabs{position:sticky;top:0;z-index:5;display:flex;gap:0;margin:14px 0 8px;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05)}.ptabs button{flex:1;border:0;background:var(--card);color:var(--ink);padding:11px 6px;font-size:14px}.ptabs button.on{background:var(--acc);color:#fff;font-weight:600}
-.desc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:13px;color:var(--muted)}
-.note{font-size:12px;color:var(--muted);margin-top:24px}
-.why{font-size:12px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
-details.adv{margin:18px 0}details.adv>summary{cursor:pointer;font-weight:600;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px;list-style:none}
-details.adv>summary::before{content:'▸ '}details.adv[open]>summary::before{content:'▾ '}
-.warn{color:var(--pend);font-size:11px;margin-left:4px}.pm{color:var(--muted);font-size:11px}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin:4px 0}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
-.chart{width:100%;height:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
-.chart text{fill:var(--muted);font-size:10px}.chart .ref{stroke:var(--muted);stroke-dasharray:4 3}
-.pendnote{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--pend);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:13px}
-/* ---- 專業化視覺層（覆寫前面的基本樣式）---- */
-:root{--acc:#24509e;--track:#e9ecf1;--tick:#1b1f24}
-@media (prefers-color-scheme:dark){:root{--acc:#7d9cff;--track:#2a2f37;--tick:#e8eaed}}
-body{font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
-h1{font-size:21px;font-weight:700;letter-spacing:.2px}
-h2{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.8px;color:var(--muted);margin:28px 0 10px}
-h2::after{content:'';flex:1;height:1px;background:var(--line)}
-.meta{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--muted);font-size:12px;margin-top:2px}
-.sum{gap:10px}.sum div{padding:12px 8px;border-radius:12px}.sum b{font-size:22px;font-weight:700}.sum span{font-size:11px;letter-spacing:.4px}
-.sb{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--track);margin:10px 0 2px}
-.sb i{display:block;height:100%}.sb .w{background:var(--win)}.sb .l{background:var(--loss)}.sb .p{background:var(--pend)}
-.sbl{display:flex;gap:14px;font-size:11px;color:var(--muted)}.sbl i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
-.sc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0}
-.sc .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.sc .n{font-weight:600}.sc .n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:-1px}
-.sc .v{font-size:20px;font-weight:700}
-.sc .l{font-size:11px;color:var(--muted);margin:8px 0 3px;display:flex;justify-content:space-between}
-.trk{position:relative;height:10px;border-radius:5px;background:var(--track)}
-.trk .f{position:absolute;left:0;top:0;bottom:0;border-radius:5px}.trk .f.win{background:var(--win)}.trk .f.loss{background:var(--loss)}.trk .f.acc{background:var(--acc)}
-.trk .rf{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tick);opacity:.75}
-.trk .wk{position:absolute;top:4px;height:2px;background:var(--tick);opacity:.55}
-.strip{display:flex;flex-wrap:wrap;gap:3px;margin-top:10px}
-.strip i{width:11px;height:11px;border-radius:3px;background:var(--track)}.strip .w{background:var(--win)}.strip .l{background:var(--loss)}.strip .p{background:transparent;border:1.5px dashed var(--pend)}
 .mb{display:inline-block;width:44px;height:6px;border-radius:3px;background:var(--track);margin-left:8px;vertical-align:middle;overflow:hidden}
 .mb i{display:block;height:100%;background:var(--acc)}.mb i.win{background:var(--win)}.mb i.loss{background:var(--loss)}.mb i.pend{background:var(--pend)}
-.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px}
-.pill.w{background:rgba(26,127,55,.12);color:var(--win)}.pill.l{background:rgba(198,40,40,.10);color:var(--loss)}.pill.p{background:rgba(138,109,0,.12);color:var(--pend)}
-.dot{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:700;color:#fff}
+details.adv{margin:26px 0 0}details.adv>summary{cursor:pointer;font-weight:700;padding:13px 16px;background:var(--card);border:1px solid var(--line);border-radius:14px;list-style:none;box-shadow:var(--shadow)}
+details.adv>summary::before{content:'▸ ';color:var(--muted)}details.adv[open]>summary::before{content:'▾ '}
+details.adv h3{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin:22px 0 8px}
+
+/* 串關清單 */
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips button{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:999px;padding:6px 14px;font-size:13px}
+.chips button.on{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+.rd{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin:22px 2px 6px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:14px;padding:12px 16px;margin:8px 0;box-shadow:var(--shadow)}
+.card.s-win{border-left-color:var(--win)}.card.s-loss{border-left-color:var(--loss)}.card.s-pending{border-left-color:var(--pend)}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.hd .nm{font-weight:700;display:flex;align-items:center;gap:8px}.hd .nm i{width:10px;height:10px;border-radius:3px}
+.hd .odds{font-weight:400;color:var(--muted);font-size:13px}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.pill.w{background:rgba(21,128,61,.12);color:var(--win)}.pill.l{background:rgba(220,38,38,.10);color:var(--loss)}.pill.p{background:rgba(180,83,9,.12);color:var(--pend)}
+.leg{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding:8px 0;font-size:14px}
+.leg:first-of-type{border-top:0}.leg .m{color:var(--muted);font-size:12px;margin-top:1px}
+.dot{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;flex:none}
 .dot.w{background:var(--win)}.dot.l{background:var(--loss)}.dot.p{background:transparent;border:1.5px dashed var(--pend);color:var(--pend)}.dot.v{background:var(--muted)}
-.card{border-radius:12px}.st{background:transparent;padding:0}
-.ptabs{border-radius:12px}.ptabs button{font-weight:500;letter-spacing:.3px}
-@media (max-width:420px){.sum b{font-size:18px}.card{padding:10px 12px}.sc{padding:10px 12px}}
+.why{font-size:12px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+.note{font-size:12px;color:var(--muted);margin-top:26px}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr 1fr}.kpi.main{grid-column:1 / -1}
+  .rkh{display:none}
+  .rk{grid-template-columns:26px 1fr auto;gap:6px 10px}
+  .rk .rb{grid-column:1 / -1}.rk .hit{grid-column:1 / -1}.rk .strip{grid-column:1 / -1}
+  .rk .rv{text-align:right}
+}
 </style>
 </head>
 <body>
 <div id="lock">
-  <div style="font-weight:600;margin-bottom:10px">運彩模擬實驗</div>
+  <div style="font-weight:700;font-size:17px;margin-bottom:12px">運彩模擬實驗</div>
   <input id="pw" type="password" placeholder="請輸入密碼" autocomplete="current-password">
   <button id="go">進入</button>
   <div class="err" id="err"></div>
@@ -118,6 +150,7 @@ const mb=(v,c)=>v==null?'':`<span class="mb"><i class="${c||''}" style="width:${
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const t=iso=>{if(!iso)return'';const d=new Date(iso);const p=n=>String(n).padStart(2,'0');
   const tw=new Date(d.getTime()+8*3600e3);return `${p(tw.getUTCMonth()+1)}/${p(tw.getUTCDate())} ${p(tw.getUTCHours())}:${p(tw.getUTCMinutes())}`};
+const pct=v=>v==null?'—':(v*100).toFixed(0)+'%';
 function stats(T,keys){
   const s={};for(const k of keys)s[k]={n:0,set:0,win:0,stake:0,ret:0,lw:0,ls:0,rs:[],oSum:0,iSum:0,lg:0,tOdds:0,maxRet:0,streak:0,maxStreak:0};
   const asc=T.slice().sort((a,b)=>(a.created||'').localeCompare(b.created||''));
@@ -129,19 +162,25 @@ function stats(T,keys){
   return s;
 }
 const SMALL=30;
-function ci(rs){const n=rs.length;if(n<2)return null;const m=rs.reduce((a,b)=>a+b,0)/n;const v=rs.reduce((a,b)=>a+(b-m)*(b-m),0)/(n-1);return 1.96*Math.sqrt(v/n)}
+function ci(rs){const n=rs.length;if(n<2)return null;const m=rs.reduce((a,b)=>a+b,0)/n;const v=rs.reduce((a,b)=>a+(b-m)*(b-m),0)/(n-1);return v>0?1.96*Math.sqrt(v/n):null}
 function mkt(m){m=String(m||'');if(m.includes('大小'))return'大小';if(m.startsWith('不讓分'))return'不讓分';if(m.includes('讓分'))return'讓分';return m.replace(/[(（].*$/,'').trim()||'其他'}
-const COL=['#2f5bd3','#e07b00','#1a9e6f','#c2308f','#7a7f8a'];
 function chart(T,keys){
   const rd={};for(const x of T){if(x.status==='pending')continue;const k=x.round;if(!rd[k]||x.created<rd[k])rd[k]=x.created}
   const rounds=Object.keys(rd).sort((a,b)=>rd[a].localeCompare(rd[b]));if(rounds.length<2)return'';
   const ser=keys.split('').map(k=>{let st=0,rt=0;return{k,pts:rounds.map(r=>{for(const x of T)if(x.source===k&&x.status!=='pending'&&x.round===r){st+=x.stake||100;rt+=x.ret||0}return st?rt/st:null})}});
-  const all=ser.flatMap(s=>s.pts).filter(v=>v!=null);const hi=Math.max(1.2,...all),W=640,H=220,L=40,R=8,Tp=10,B=22;
+  const all=ser.flatMap(s=>s.pts).filter(v=>v!=null);const hi=Math.max(1.2,...all)*1.05,W=720,H=260,L=44,R=64,Tp=12,B=26;
   const X=i=>L+(W-L-R)*(rounds.length>1?i/(rounds.length-1):0.5),Y=v=>Tp+(H-Tp-B)*(1-v/hi);
-  let g='';for(const v of [0,0.5,1,1.5,2,3,4].filter(v=>v<=hi))g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" class="${v===1?'ref':''}" stroke="var(--line)"/><text x="${L-4}" y="${Y(v)+3}" text-anchor="end">${Math.round(v*100)}%</text>`;
-  g+=`<text x="${L}" y="${H-6}">第1輪</text><text x="${W-R}" y="${H-6}" text-anchor="end">第${rounds.length}輪</text>`;
-  ser.forEach((s,i)=>{const d=s.pts.map((v,j)=>v==null?null:`${X(j).toFixed(1)},${Y(v).toFixed(1)}`).filter(Boolean).join(' ');g+=`<polyline points="${d}" fill="none" stroke="${SC[s.k]}" stroke-width="2"/>`});
-  return`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="累計回收率走勢">${g}</svg><div class="legend">${ser.map((s,i)=>`<span><i style="background:${SC[s.k]}"></i>${NAMES[s.k]}</span>`).join('')}</div>`;
+  let g='';for(const v of [0,0.5,1,1.5,2,3,4].filter(v=>v<=hi))g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" class="${v===1?'ref':''}" stroke="var(--line)"/><text x="${L-6}" y="${Y(v)+3}" text-anchor="end">${Math.round(v*100)}%</text>`;
+  g+=`<text x="${W-R+4}" y="${Y(1)-4}" style="font-size:9px">打平 100%</text>`;
+  g+=`<text x="${L}" y="${H-8}">第 1 輪</text><text x="${W-R}" y="${H-8}" text-anchor="end">第 ${rounds.length} 輪</text>`;
+  const ends=[];
+  ser.forEach(s=>{const pts=s.pts.map((v,j)=>v==null?null:[X(j),Y(v)]).filter(Boolean);if(!pts.length)return;
+    g+=`<polyline points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="${SC[s.k]}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const e=pts[pts.length-1];g+=`<circle cx="${e[0].toFixed(1)}" cy="${e[1].toFixed(1)}" r="3.5" fill="${SC[s.k]}"/>`;
+    const last=[...s.pts].reverse().find(v=>v!=null);ends.push({k:s.k,y:e[1],v:last,x:e[0]})});
+  ends.sort((a,b)=>a.y-b.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<12)ends[i].y=ends[i-1].y+12;
+  for(const e of ends)g+=`<text x="${(e.x+8).toFixed(1)}" y="${(e.y+3).toFixed(1)}" style="fill:${SC[e.k]};font-weight:700;font-size:11px">${e.k} ${pct(e.v)}</text>`;
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="累計回收率走勢">${g}</svg><div class="legend">${ser.map(s=>`<span><i style="background:${SC[s.k]}"></i>${NAMES[s.k]}</span>`).join('')}</div>`;
 }
 function dis(T){
   const G={};for(const x of T)for(const l of x.legs||[]){const g=G[l.match+'|'+l.market]=G[l.match+'|'+l.market]||{};const o=g[x.source+'|'+l.pick];if(!o||(o.res!=="win"&&o.res!=="loss"))g[x.source+'|'+l.pick]={s:x.source,pick:l.pick,res:l.result}}
@@ -150,83 +189,112 @@ function dis(T){
     for(const z of e){if(z.res!=='win'&&z.res!=='loss')continue;const r=R[z.s]||(R[z.s]={n:0,w:0});r.n++;if(z.res==='win')r.w++}}
   return{R,m};
 }
+function insight(rows){
+  const ok=rows.filter(r=>r.set>0);if(!ok.length)return'<b>尚無已結算資料</b>，等第一批結果開出後才有數字可看。';
+  const sets=ok.map(r=>r.set),mn=Math.min(...sets),mx=Math.max(...sets);
+  const up=ok.filter(r=>r.set>=SMALL&&r.ci!=null&&r.roi-r.ci>1),dn=ok.filter(r=>r.set>=SMALL&&r.ci!=null&&r.roi+r.ci<1);
+  let m;
+  if(up.length||dn.length)m=`依 95% 誤差範圍判斷：${up.length?`<b class="win">${up.map(r=>r.k).join('、')}</b> 回收率明顯高於打平`:''}${up.length&&dn.length?'；':''}${dn.length?`<b class="loss">${dn.map(r=>r.k).join('、')}</b> 回收率明顯低於打平`:''}。其餘來源的誤差範圍仍包含 100%，無法判定。`;
+  else m=`各來源已結算 <b>${mn===mx?mn:mn+'～'+mx}</b> 張${mx<SMALL?`（未滿 ${SMALL} 張）`:''}，${mx<SMALL?'樣本太少，':''}回收率的誤差範圍尚未能排除 100%（打平），目前<b>無法判定誰賺誰賠、誰比較準</b>。`;
+  const d=ok.filter(r=>r.ls>0&&r.lg>0).map(r=>({k:r.k,d:r.hit-r.iSum/r.lg,n:r.ls})).sort((a,b)=>b.d-a.d)[0];
+  if(d)m+=` 命中率相對盤口預期最佳的是 <b>${d.k}</b>（${d.d>=0?'+':''}${(d.d*100).toFixed(0)}%，單關 ${d.n} 個），樣本小，僅供參考。`;
+  return m;
+}
 let adv=false;
 let filter='all', page='main';
 try{page=localStorage.getItem('page')||'main'}catch(e){}
 const PAGES={main:{key:'tickets',title:'主實驗',keys:'ABCDE'},special:{key:'tickets2',title:'綜合玩法',keys:'ABCDE'},claude:{key:'tickets3',title:'Claude 精選',keys:'FGH'},score:{key:'tickets4',title:'正確比分',keys:'ABCDE'}};
 function render(D){
   if(!PAGES[page])page='main';
+  const ks=PAGES[page].keys;
   const T=(D[PAGES[page].key]||[]).slice().sort((a,b)=>(b.created||'').localeCompare(a.created||'')||a.source.localeCompare(b.source));
-  const S=stats(T,PAGES[page].keys);
+  const S=stats(T,ks);
   const rows=Object.entries(S).map(([k,r])=>({k,...r,hit:r.ls?r.lw/r.ls:null,roi:r.stake?r.ret/r.stake:null,ci:ci(r.rs)}))
     .sort((a,b)=>(b.roi??-1)-(a.roi??-1)||(b.hit??-1)-(a.hit??-1));
-  const pct=v=>v==null?'—':(v*100).toFixed(0)+'%';
-  let h=`<h1>運彩模擬實驗</h1><div class="meta"><span>實驗期間 2026-11-07 ～ 11-13</span><span>最後更新 ${esc(D.lastRun||D.updated||'')}</span><span>每張 100 元・純模擬未下注</span></div>`;
-  h+=`<div class="ptabs">`+Object.entries(PAGES).map(([k,v])=>`<button data-p="${k}" class="${page===k?'on':''}">${v.title}</button>`).join('')+`</div>`;
+  const asc=T.slice().sort((a,b)=>(a.created||'').localeCompare(b.created||''));
   const tot=Object.values(S).reduce((a,r)=>({n:a.n+r.n,set:a.set+r.set,win:a.win+r.win,stake:a.stake+r.stake,ret:a.ret+r.ret}),{n:0,set:0,win:0,stake:0,ret:0});
-  h+=`<div class="sum"><div><b>${tot.n}</b><span>張數</span></div><div><b>${tot.set}</b><span>已結算</span></div><div><b>${tot.win}</b><span>中獎</span></div><div><b class="${tot.stake?(tot.ret>=tot.stake?'win':'loss'):''}">${tot.stake?pct(tot.ret/tot.stake):'—'}</b><span>整體回收率</span></div></div>`;
-  {const nw=T.filter(x=>x.status==='win').length,nl=T.filter(x=>x.status==='loss').length,np=T.length-nw-nl,tl=T.length||1;
-   h+=`<div class="sb" title="中獎 ${nw}／未中 ${nl}／待開獎 ${np}"><i class="w" style="width:${nw/tl*100}%"></i><i class="l" style="width:${nl/tl*100}%"></i><i class="p" style="width:${np/tl*100}%"></i></div><div class="sbl"><span><i style="background:var(--win)"></i>中獎 ${nw}</span><span><i style="background:var(--loss)"></i>未中 ${nl}</span><span><i style="background:var(--pend)"></i>待開獎 ${np}</span></div>`}
+  const nw=T.filter(x=>x.status==='win').length,nl=T.filter(x=>x.status==='loss').length,np=T.length-nw-nl,tl=T.length||1;
+  const troi=tot.stake?tot.ret/tot.stake:null;
+
+  let h=`<div class="top"><div><h1>運彩模擬實驗</h1><div class="meta"><span>實驗期間 2026-11-07 ～ 11-13</span><span>最後更新 ${esc(D.lastRun||D.updated||'')}</span><span>每張 100 元・純模擬未下注</span></div></div></div>`;
+  h+=`<div class="ptabs">`+Object.entries(PAGES).map(([k,v])=>`<button data-p="${k}" class="${page===k?'on':''}">${v.title}</button>`).join('')+`</div>`;
   if(page==='claude')h+=`<div class="desc">Claude 綜合所有資料來源（數據模型、國外盤口去水、專家共識、戰績）做判斷，不限玩法、每關賠率至少 1.30，每輪出 3 張 3 串 1：穩健（命中率最高）、平衡（命中率與期望值兼顧）、價值（期望值最高）；沒有夠好的選項時該張不出。</div>`;
   if(page==='score')h+=`<div class="desc">只買足球正確比分（波膽，90 分鐘含傷停），每張 2 串 1，五個來源各組一張。中獎機率很低、賠率很高，請多看「單關命中」而不是張數。</div>`;
   if(page==='special')h+=`<div class="desc">不限玩法（不讓分、大小、讓分、總進球數、勝分差、兩隊都進球等），每關賠率至少 1.30，五個來源各組 3 串 1。</div>`;
-  {const mx=Math.max(0,...rows.map(r=>r.roi||0)),SCL=Math.max(1.5,Math.min(3,mx*1.2)),asc=T.slice().sort((a,b)=>(a.created||'').localeCompare(b.created||''));
-   h+=`<h2>來源績效卡（依回收率排序）</h2>`;
-   for(const r of rows){
-     const imp=r.lg?r.iSum/r.lg:null,lo=r.ci!=null&&r.roi!=null?Math.max(0,r.roi-r.ci):null,hi=r.ci!=null&&r.roi!=null?Math.min(SCL,r.roi+r.ci):null;
-     h+=`<div class="sc"><div class="t"><span class="n"><i style="background:${SC[r.k]}"></i>${NAMES[r.k]}</span><span class="v ${r.roi==null?'':r.roi>=1?'win':'loss'}">${pct(r.roi)}${r.ci!=null?`<span class="pm"> ±${(r.ci*100).toFixed(0)}%</span>`:''}${r.set<SMALL?'<span class="warn">樣本不足</span>':''}</span></div>`;
-     h+=`<div class="l"><span>回收率（豎線 = 100% 損益兩平，細線 = 95% 誤差範圍）</span><span>${r.set} 張已結算</span></div><div class="trk"><div class="f ${r.roi>=1?'win':'loss'}" style="width:${Math.min(1,(r.roi||0)/SCL)*100}%"></div>${lo!=null?`<div class="wk" style="left:${lo/SCL*100}%;width:${(hi-lo)/SCL*100}%"></div>`:''}<div class="rf" style="left:${1/SCL*100}%"></div></div>`;
-     h+=`<div class="l"><span>單關命中（豎線 = 賠率隱含機率 ${pct(imp)}）</span><span>${r.ls?`${r.lw}/${r.ls}　${pct(r.hit)}`:'—'}</span></div><div class="trk"><div class="f acc" style="width:${(r.hit||0)*100}%"></div>${imp!=null?`<div class="rf" style="left:${imp*100}%"></div>`:''}</div>`;
-     h+=`<div class="strip" title="依時間排列，每格一張">`+asc.filter(x=>x.source===r.k).map(x=>`<i class="${x.status==='win'?'w':x.status==='loss'?'l':'p'}"></i>`).join('')+`</div></div>`}
-   h+=`<div class="sub">長條表示相對大小；回收率線超過豎線才代表賺錢，命中條超過豎線才代表比盤口準。小方格由舊到新：綠 = 中獎、紅 = 未中、虛線 = 待開獎。</div>`}
-  h+=`<h2>明細表</h2><div class="tbw"><table><tr><th>來源</th><th>張數</th><th>已結算</th><th>中獎</th><th>單關命中</th><th>回收率</th></tr>`;
-  for(const r of rows)h+=`<tr><td>${NAMES[r.k]}</td><td>${r.n}</td><td>${r.set}</td><td>${r.win}</td><td>${r.ls?`${r.lw}/${r.ls} (${pct(r.hit)})`:'—'}</td><td>${r.stake?`<span class="${r.roi>=1?'win':'loss'}">${pct(r.roi)}</span>${r.ci!=null?`<span class="pm"> ±${(r.ci*100).toFixed(0)}%</span>`:''}${r.set<SMALL?'<span class="warn">樣本不足</span>':''}<div class="m sub">${Math.round(r.ret)}/${r.stake}</div>`:'—'}</td></tr>`;
-  h+=`</table></div>`;
-  h+=`<div class="sub" style="margin-top:6px">回收率後的 ±x% 為 95% 誤差範圍（依每張回收的離散程度粗估）；已結算未滿 ${SMALL} 張標示「樣本不足」，排名差距在誤差範圍內時不能判定誰較好。「單關命中」分母為所有已開獎的單關（含尚未整張結算的串關裡已開出的場次，退款不計），所以不等於已結算張數 × 關數。</div>`;
+
+  h+=`<div class="hero"><div class="kpi main"><small>整體回收率</small><b class="${troi==null?'':troi>=1?'win':'loss'}">${pct(troi)}</b><em>${tot.stake?`投入 ${tot.stake} 元，拿回 ${Math.round(tot.ret)} 元`:'尚無已結算'}</em></div>`
+   +`<div class="kpi"><small>串關總數</small><b>${tot.n}</b><em>每張 100 元</em></div><div class="kpi"><small>已結算</small><b>${tot.set}</b><em>中獎 ${tot.win} 張</em></div><div class="kpi"><small>待開獎</small><b class="${np?'pending':''}">${np}</b><em>結算後才算完整</em></div></div>`;
+  h+=`<div class="sb" title="中獎 ${nw}／未中 ${nl}／待開獎 ${np}"><i class="w" style="width:${nw/tl*100}%"></i><i class="l" style="width:${nl/tl*100}%"></i><i class="p" style="width:${np/tl*100}%"></i></div><div class="sbl"><span><i style="background:var(--win)"></i>中獎 ${nw}</span><span><i style="background:var(--loss)"></i>未中 ${nl}</span><span><i style="background:var(--pend)"></i>待開獎 ${np}</span></div>`;
+  h+=`<div class="note-box"><div>${insight(rows)}</div></div>`;
   {const P0=T.filter(x=>x.status==='pending');if(P0.length){const last=P0.flatMap(x=>(x.legs||[]).filter(l=>l.result==='pending'&&l.start).map(l=>l.start)).sort().pop();
-    h+=`<div class="pendnote">待開獎${P0.length} 張${last?`，最晚一場預計 ${t(last)} 開賽，結算後才算完整`:''}。目前排名為<b>暫時結果</b>，開獎後可能改變。</div>`}}
-  {const ks=PAGES[page].keys;
-   h+=`<details class="adv" ${adv?'open':''}><summary>進階分析（校準、走勢、風險、玩法）</summary>`;
-   h+=`<h2>累計回收率走勢（依輪次，只計已結算）</h2>`+(chart(T,ks)||'<div class="sub">結算輪次不足，無法畫圖。</div>');
-   h+=`<h2>校準：實際命中率 vs 賠率隱含機率（單關）</h2><div class="tbw"><table><tr><th>來源</th><th>單關數</th><th>平均賠率</th><th>隱含機率</th><th>實際命中</th><th>差距</th></tr>`;
-   for(const r of rows){const imp=r.lg?r.iSum/r.lg:null,act=r.ls?r.lw/r.ls:null,d=imp!=null&&act!=null?act-imp:null;
-     h+=`<tr><td>${NAMES[r.k]}</td><td>${r.lg}</td><td>${r.lg?(r.oSum/r.lg).toFixed(2):'—'}</td><td>${pct(imp)}${mb(imp,'pend')}</td><td>${pct(act)}${mb(act,d==null?'':d>=0?'win':'loss')}</td><td class="${d==null?'':d>=0?'win':'loss'}">${d==null?'—':(d>=0?'+':'')+(d*100).toFixed(0)+'%'}</td></tr>`}
-   h+=`</table></div><div class="sub" style="margin-top:6px">隱含機率 = 1 ÷ 賠率（未扣莊家水）。實際命中高於隱含機率才代表比盤口準；差距為負代表輸給盤口。</div>`;
-   h+=`<h2>風險指標</h2><div class="tbw"><table><tr><th>來源</th><th>平均張賠率</th><th>最大連敗(張)</th><th>最大單張回收</th><th>佔總回收</th></tr>`;
-   for(const r of rows)h+=`<tr><td>${NAMES[r.k]}</td><td>${r.n?(r.tOdds/r.n).toFixed(2):'—'}</td><td>${r.maxStreak}</td><td>${r.maxRet?Math.round(r.maxRet)+' 元':'—'}</td><td>${r.ret?pct(r.maxRet/r.ret)+mb(r.maxRet/r.ret,r.maxRet/r.ret>=.5?'loss':''):'—'}</td></tr>`;
-   h+=`</table></div><div class="sub" style="margin-top:6px">「佔總回收」越高，代表回收率越依賴單一張中獎，穩定度較低。</div>`;
-   {const dd=dis(T),dk=ks.split('').filter(k=>dd.R[k]);
-    h+=`<h2>分歧場次：意見不一致時誰較準</h2>`;
-    if(!dk.length)h+='<div class="sub">這一頁目前沒有已開獎的分歧場次。</div>';
-    else{h+=`<div class="tbw"><table><tr><th>來源</th><th>分歧場次單關數</th><th>命中</th></tr>`;
-      for(const k of dk.sort((a,b)=>dd.R[b].w/dd.R[b].n-dd.R[a].w/dd.R[a].n)){const r=dd.R[k];h+=`<tr><td>${NAMES[k]}</td><td>${r.n}</td><td>${r.w} (${pct(r.w/r.n)})${mb(r.w/r.n)}${r.n<10?'<span class="warn">樣本不足</span>':''}</td></tr>`}
-      h+=`</table></div>`}
-    h+=`<div class="sub" style="margin-top:6px">分歧場次 = 同一場同一盤口，不同來源選了不同的結果（本頁共 ${dd.m} 場，含未開獎）。只涵蓋被選進串關的場次，樣本偏少且有選擇偏誤，僅供參考。</div>`}
-   const M={};for(const x of T)for(const l of x.legs||[]){if((l.result!=='win'&&l.result!=='loss')||!(+l.odds>1))continue;const m=mkt(l.market),r=M[m]||(M[m]={n:0,w:0,o:0,i:0});r.n++;if(l.result==='win')r.w++;r.o+=+l.odds;r.i+=1/+l.odds}
+    h+=`<div class="note-box pd"><div>待開獎 <b>${P0.length}</b> 張${last?`，最晚一場預計 ${t(last)} 開賽`:''}。目前排名為<b>暫時結果</b>，開獎後可能改變。</div></div>`}}
+
+  // 來源排行
+  {const HR=Math.max(0.5,Math.min(2,Math.max(0,...rows.map(r=>Math.abs((r.roi??1)-1)))*1.25));
+   const X=v=>Math.max(0,Math.min(100,(v-(1-HR))/(2*HR)*100));
+   h+=`<div class="sec"><h2>來源排行</h2><span>依回收率排序</span></div>`;
+   h+=`<div class="rkh"><span></span><span>來源</span><span>回收率</span><div class="mid"><span>← 賠</span><span>打平</span><span>賺 →</span></div><span>單關命中 vs 盤口預期</span></div>`;
+   rows.forEach((r,i)=>{
+     const imp=r.lg?r.iSum/r.lg:null,diff=imp!=null&&r.hit!=null?r.hit-imp:null;
+     const lo=r.ci!=null&&r.roi!=null?r.roi-r.ci:null,hi=r.ci!=null&&r.roi!=null?r.roi+r.ci:null,up=r.roi!=null&&r.roi>=1;
+     h+=`<div class="rk"><div class="no ${i===0&&r.set>0?'first':''}">${i+1}</div>`
+      +`<div><div class="nm"><i style="background:${SC[r.k]}"></i>${NAMES[r.k]}</div><div class="ct">${r.set} 張已結算${r.set<SMALL?'<span class="warn">樣本不足</span>':''}</div></div>`
+      +`<div class="rv ${r.roi==null?'':up?'win':'loss'}">${pct(r.roi)}${r.ci!=null?`<div class="pm">±${(r.ci*100).toFixed(0)}%</div>`:''}</div>`
+      +`<div class="rb"><div class="trk">${lo!=null?`<div class="band" style="left:${X(lo)}%;width:${Math.max(0,X(hi)-X(lo))}%"></div>`:''}${r.roi!=null?`<div class="f2 ${up?'win':'loss'}" style="${up?`left:50%;width:${X(r.roi)-50}%`:`left:${X(r.roi)}%;width:${50-X(r.roi)}%`}"></div>`:''}<div class="mid"></div></div></div>`
+      +`<div class="hit"><b>${pct(r.hit)}</b> <span class="sub">${r.ls?`${r.lw}/${r.ls} 關`:''}</span>${diff==null?'':`<span class="chip ${diff>=0?'win':'loss'}">${diff>=0?'+':''}${(diff*100).toFixed(0)}%</span>`}<div class="sub">盤口預期 ${pct(imp)}</div></div>`
+      +`<div class="strip" title="依時間排列，每格一張串關">`+asc.filter(x=>x.source===r.k).map(x=>`<i class="${x.status==='win'?'w':x.status==='loss'?'l':'p'}"></i>`).join('')+`</div></div>`});
+   h+=`<div class="desc"><b>怎麼看：</b>回收率長條的<b>中線＝打平</b>，往右（綠）賺、往左（紅）賠；淡色帶是 95% 誤差範圍，越寬越不確定。命中旁的 +/−% 是相對「賠率換算出的預期勝率（1÷賠率）」，大於 0 才代表比盤口準。小方格由舊到新：綠＝中獎、紅＝未中、虛線＝待開獎。</div>`}
+
+  // 走勢圖
+  h+=`<div class="sec"><h2>累計回收率走勢</h2><span>依輪次，只計已結算</span></div><div class="panel">`+(chart(T,ks)||'<div class="sub">結算輪次不足，無法畫圖。</div>')+`</div>`;
+
+  // 進階分析
+  h+=`<details class="adv" ${adv?'open':''}><summary>進階分析：明細、校準、風險、分歧場次、玩法</summary>`;
+  h+=`<h3>明細表</h3><div class="tbw"><table><tr><th>來源</th><th>張數</th><th>已結算</th><th>中獎</th><th>單關命中</th><th>回收率</th></tr>`;
+  for(const r of rows)h+=`<tr><td>${NAMES[r.k]}</td><td>${r.n}</td><td>${r.set}</td><td>${r.win}</td><td>${r.ls?`${r.lw}/${r.ls} (${pct(r.hit)})`:'—'}</td><td>${r.stake?`<span class="${r.roi>=1?'win':'loss'}">${pct(r.roi)}</span>${r.ci!=null?`<span class="pm"> ±${(r.ci*100).toFixed(0)}%</span>`:''}${r.set<SMALL?'<span class="warn">樣本不足</span>':''}<div class="sub" style="font-size:11px">${Math.round(r.ret)}/${r.stake}</div>`:'—'}</td></tr>`;
+  h+=`</table></div><div class="sub" style="margin-top:6px">「單關命中」分母為所有已開獎的單關（含尚未整張結算的串關裡已開出的場次，退款不計），所以不等於已結算張數 × 關數。</div>`;
+  h+=`<h3>校準：實際命中率 vs 賠率隱含機率（單關）</h3><div class="tbw"><table><tr><th>來源</th><th>單關數</th><th>平均賠率</th><th>隱含機率</th><th>實際命中</th><th>差距</th></tr>`;
+  for(const r of rows){const imp=r.lg?r.iSum/r.lg:null,act=r.ls?r.lw/r.ls:null,d=imp!=null&&act!=null?act-imp:null;
+    h+=`<tr><td>${NAMES[r.k]}</td><td>${r.lg}</td><td>${r.lg?(r.oSum/r.lg).toFixed(2):'—'}</td><td>${pct(imp)}${mb(imp,'pend')}</td><td>${pct(act)}${mb(act,d==null?'':d>=0?'win':'loss')}</td><td class="${d==null?'':d>=0?'win':'loss'}">${d==null?'—':(d>=0?'+':'')+(d*100).toFixed(0)+'%'}</td></tr>`}
+  h+=`</table></div><div class="sub" style="margin-top:6px">隱含機率 = 1 ÷ 賠率（未扣莊家水）。實際命中高於隱含機率才代表比盤口準；差距為負代表輸給盤口。</div>`;
+  h+=`<h3>風險指標</h3><div class="tbw"><table><tr><th>來源</th><th>平均張賠率</th><th>最大連敗(張)</th><th>最大單張回收</th><th>佔總回收</th></tr>`;
+  for(const r of rows)h+=`<tr><td>${NAMES[r.k]}</td><td>${r.n?(r.tOdds/r.n).toFixed(2):'—'}</td><td>${r.maxStreak}</td><td>${r.maxRet?Math.round(r.maxRet)+' 元':'—'}</td><td>${r.ret?pct(r.maxRet/r.ret)+mb(r.maxRet/r.ret,r.maxRet/r.ret>=.5?'loss':''):'—'}</td></tr>`;
+  h+=`</table></div><div class="sub" style="margin-top:6px">「佔總回收」越高，代表回收率越依賴單一張中獎，穩定度較低。</div>`;
+  {const dd=dis(T),dk=ks.split('').filter(k=>dd.R[k]);
+   h+=`<h3>分歧場次：意見不一致時誰較準</h3>`;
+   if(!dk.length)h+='<div class="sub">這一頁目前沒有已開獎的分歧場次。</div>';
+   else{h+=`<div class="tbw"><table><tr><th>來源</th><th>分歧場次單關數</th><th>命中</th></tr>`;
+     for(const k of dk.sort((a,b)=>dd.R[b].w/dd.R[b].n-dd.R[a].w/dd.R[a].n)){const r=dd.R[k];h+=`<tr><td>${NAMES[k]}</td><td>${r.n}</td><td>${r.w} (${pct(r.w/r.n)})${mb(r.w/r.n)}${r.n<10?'<span class="warn">樣本不足</span>':''}</td></tr>`}
+     h+=`</table></div>`}
+   h+=`<div class="sub" style="margin-top:6px">分歧場次 = 同一場同一盤口，不同來源選了不同的結果（本頁共 ${dd.m} 場，含未開獎）。只涵蓋被選進串關的場次，樣本偏少且有選擇偏誤，僅供參考。</div>`}
+  {const M={};for(const x of T)for(const l of x.legs||[]){if((l.result!=='win'&&l.result!=='loss')||!(+l.odds>1))continue;const m=mkt(l.market),r=M[m]||(M[m]={n:0,w:0,o:0,i:0});r.n++;if(l.result==='win')r.w++;r.o+=+l.odds;r.i+=1/+l.odds}
    const ml=Object.entries(M).sort((a,b)=>b[1].n-a[1].n);
-   h+=`<h2>依玩法拆分（單關）</h2><div class="tbw"><table><tr><th>玩法</th><th>單關數</th><th>命中</th><th>平均賠率</th><th>隱含機率</th><th>差距</th></tr>`;
+   h+=`<h3>依玩法拆分（單關）</h3><div class="tbw"><table><tr><th>玩法</th><th>單關數</th><th>命中</th><th>平均賠率</th><th>隱含機率</th><th>差距</th></tr>`;
    for(const [m,r] of ml){const a=r.w/r.n,i=r.i/r.n,d=a-i;h+=`<tr><td>${esc(m)}</td><td>${r.n}</td><td>${r.w} (${pct(a)})${mb(a)}</td><td>${(r.o/r.n).toFixed(2)}</td><td>${pct(i)}</td><td class="${d>=0?'win':'loss'}">${(d>=0?'+':'')+(d*100).toFixed(0)}%</td></tr>`}
-   h+=`</table></div><div class="sub" style="margin-top:6px">玩法依盤口名稱歸類（大小 2.5／3.5…併為「大小」，讓分各線併為「讓分」）。單關數少的玩法差距參考價值低。</div></details>`}
-  const pend=T.filter(x=>x.status==='pending').length;
-  h+=`<h2>所有串關</h2><div class="tabs">`+[['all','全部 '+T.length],['pending','待開獎 '+pend],['win','中獎'],['loss','未中'],...(page==='claude'?[['F','穩健'],['G','平衡'],['H','價值']]:'ABCDE'.split('').map(k=>[k,k]))].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
+   h+=`</table></div><div class="sub" style="margin-top:6px">玩法依盤口名稱歸類（大小 2.5／3.5…併為「大小」，讓分各線併為「讓分」）。單關數少的玩法差距參考價值低。</div>`}
+  h+=`</details>`;
+
+  // 串關清單
+  h+=`<div class="sec"><h2>所有串關</h2><span>${T.length} 張</span></div><div class="chips">`+[['all','全部 '+T.length],['pending','待開獎 '+np],['win','中獎'],['loss','未中'],...(page==='claude'?[['F','穩健'],['G','平衡'],['H','價值']]:'ABCDE'.split('').map(k=>[k,k]))].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
   h+=`<div class="note">✓ 過關　✕ 沒過　… 未開獎　↩ 退款（以 1 計）。足球只算 90 分鐘（含傷停）。</div>`;
+
   const app=document.getElementById('app');app.innerHTML=h;app.hidden=false;
   const dt=app.querySelector('details.adv');if(dt)dt.ontoggle=()=>{adv=dt.open};
-  app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render(D)});
+  app.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render(D)});
   app.querySelectorAll('.ptabs button').forEach(b=>b.onclick=()=>{page=b.dataset.p;filter='all';try{localStorage.setItem('page',page)}catch(e){};render(D);window.scrollTo(0,0)});
   const L=T.filter(x=>filter==='all'||x.status===filter||x.source===filter);
   let cur='',o='';
   for(const x of L){
-    if(x.round!==cur){cur=x.round;o+=`<h2>${esc(cur)}</h2>`;}
-    const st=x.status==='win'?`<span class="pill w">中獎 回 ${Math.round(x.ret)} 元</span>`:x.status==='loss'?`<span class="pill l">未中</span>`:`<span class="pill p">待開獎 中了回 ${Math.round(100*x.odds)} 元</span>`;
-    o+=`<div class="card s-${x.status==='win'||x.status==='loss'?x.status:'pending'}"><div class="hd"><span>${NAMES[x.source]||x.source}<span class="odds">總賠率 ${(+x.odds).toFixed(3)}</span></span><span class="st">${st}</span></div>`;
+    if(x.round!==cur){cur=x.round;o+=`<div class="rd">${esc(cur)}</div>`;}
+    const st=x.status==='win'?`<span class="pill w">中獎　回 ${Math.round(x.ret)} 元</span>`:x.status==='loss'?`<span class="pill l">未中</span>`:`<span class="pill p">待開獎　中了回 ${Math.round(100*x.odds)} 元</span>`;
+    o+=`<div class="card s-${x.status==='win'||x.status==='loss'?x.status:'pending'}"><div class="hd"><span class="nm"><i style="background:${SC[x.source]||'var(--muted)'}"></i>${NAMES[x.source]||x.source}<span class="odds">總賠率 ${(+x.odds).toFixed(3)}</span></span>${st}</div>`;
     for(const l of x.legs||[]){
-      o+=`<div class="leg"><div>${esc(l.match)}<div class="m">${esc(l.market)}｜${esc(l.pick)} ${l.odds}｜${t(l.start)}${l.note?'｜'+esc(l.note):''}</div></div><div class="r ${l.result}">${MARK[l.result]||''}</div></div>`;
+      o+=`<div class="leg"><div>${esc(l.match)}<div class="m">${esc(l.market)}｜${esc(l.pick)} ${l.odds}｜${t(l.start)}${l.note?'｜'+esc(l.note):''}</div></div>${MARK[l.result]||''}</div>`;
     }
     if(x.why)o+=`<div class="why">${esc(x.why)}</div>`;
     o+=`</div>`;
   }
-  document.getElementById('list').innerHTML=o||`<div class="sub">${T.length?'沒有符合的單':'這一頁還沒有串關，下一輪排程（02:51／06:51／11:51／15:51／18:51）開始建立。'}</div>`;
+  document.getElementById('list').innerHTML=o||`<div class="sub" style="margin-top:10px">${T.length?'沒有符合的單':'這一頁還沒有串關，下一輪排程（02:51／06:51／11:51／15:51／18:51）開始建立。'}</div>`;
 }
 </script>
 </body>
