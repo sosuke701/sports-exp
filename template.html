@@ -203,7 +203,7 @@ function insight(rows){
 let adv=false;
 let filter='all', page='main';
 try{page=localStorage.getItem('page')||'main'}catch(e){}
-const PAGES={main:{key:'tickets',title:'主實驗',keys:'ABCDE'},special:{key:'tickets2',title:'綜合玩法',keys:'ABCDE'},claude:{key:'tickets3',title:'Claude 精選',keys:'FGH'},score:{key:'tickets4',title:'正確比分',keys:'ABCDE'}};
+const PAGES={main:{key:'tickets',title:'主實驗',keys:'ABCDE'},special:{key:'tickets2',title:'綜合玩法',keys:'ABCDE'},claude:{key:'tickets3',title:'Claude 精選',keys:'FGH'},score:{key:'tickets4',title:'正確比分',keys:'ABCDEF'}};
 function render(D){
   if(!PAGES[page])page='main';
   const ks=PAGES[page].keys;
@@ -275,7 +275,7 @@ function render(D){
   h+=`</details>`;
 
   // 串關清單
-  h+=`<div class="sec"><h2>所有串關</h2><span>${T.length} 張</span></div><div class="chips">`+[['all','全部 '+T.length],['pending','待開獎 '+np],['win','中獎'],['loss','未中'],...(page==='claude'?[['F','穩健'],['G','平衡'],['H','價值']]:'ABCDE'.split('').map(k=>[k,k]))].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
+  h+=`<div class="sec"><h2>所有串關</h2><span>${T.length} 張</span></div><div class="chips">`+[['all','全部 '+T.length],['pending','待開獎 '+np],['win','中獎'],['loss','未中'],...(page==='claude'?[['F','穩健'],['G','平衡'],['H','價值']]:(page==='score'?'ABCDEF':'ABCDE').split('').map(k=>[k,k]))].map(([k,l])=>`<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')+`</div><div id="list"></div>`;
   h+=`<div class="note">✓ 過關　✕ 沒過　… 未開獎　↩ 退款（以 1 計）。足球只算 90 分鐘（含傷停）。</div>`;
 
   const app=document.getElementById('app');app.innerHTML=h;app.hidden=false;
