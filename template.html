@@ -108,6 +108,28 @@ details.adv h3{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:
 .why{font-size:12px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
 .note{font-size:12px;color:var(--muted);margin-top:26px}
 
+/* 視覺化分析 */
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:8px}
+.vz h3{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin:6px 0 10px}
+.pb{display:grid;grid-template-columns:96px 1fr 44px;gap:8px;align-items:center;margin:9px 0}
+.pb .pl{font-size:13px;line-height:1.25}
+.pbars{display:flex;flex-direction:column;gap:3px}
+.pbar{position:relative;height:19px;border-radius:4px;background:var(--track);overflow:hidden}
+.pbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.pbar span{position:relative;z-index:1;font-size:11px;line-height:19px;padding-left:6px;color:var(--ink);mix-blend-mode:normal}
+.b-imp{background:var(--muted);opacity:.35}.b-win{background:var(--win);opacity:.75}.b-loss{background:var(--loss);opacity:.75}
+.pdl{font-size:13px;font-weight:700;text-align:right}
+.heat{width:100%;border-collapse:separate;border-spacing:4px;min-width:0}
+.heat th{background:transparent;border:0;font-size:12px;text-align:center;padding:2px 4px}
+.heat th:first-child{text-align:left}
+.heat td{border:0;border-radius:8px;text-align:center;padding:8px 4px;font-size:13px;line-height:1.3;white-space:normal}
+.heat td small{display:block;font-size:10px;color:var(--muted)}
+.heat td.empty{background:var(--track);color:var(--muted)}
+.mrow{display:grid;grid-template-columns:120px 1fr 120px;gap:10px;align-items:center;margin:8px 0;font-size:13px}
+.mtrk{height:12px;border-radius:6px;background:var(--track);position:relative;overflow:hidden}
+.mtrk i{position:absolute;left:0;top:0;bottom:0;background:var(--acc);border-radius:6px}
+.mtrk u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.7}
+@media (max-width:760px){.vgrid{grid-template-columns:1fr}.pb{grid-template-columns:78px 1fr 40px}.mrow{grid-template-columns:90px 1fr}.mrow .mr{grid-column:1 / -1}}
 @media (max-width:760px){
   .hero{grid-template-columns:1fr 1fr}.kpi.main{grid-column:1 / -1}
   .rkh{display:none}
@@ -200,6 +222,128 @@ function insight(rows){
   if(d)m+=` 命中率相對盤口預期最佳的是 <b>${d.k}</b>（${d.d>=0?'+':''}${(d.d*100).toFixed(0)}%，單關 ${d.n} 個），樣本小，僅供參考。`;
   return m;
 }
+
+// 通用分組表：fn 回傳分組名稱（回傳 null 則略過），單關去重（同場同選項只算一次）
+function grpTable(T,fn,title,note,order){
+  const G={},seen=new Set();
+  for(const x of T)for(const l of x.legs||[]){
+    if((l.result!=='win'&&l.result!=='loss')||!(+l.odds>1))continue;
+    const key=l.match+'|'+l.market+'|'+l.pick;if(seen.has(key))continue;seen.add(key);
+    const g=fn(l);if(g==null)continue;
+    const r=G[g]||(G[g]={n:0,w:0,o:0,i:0,u:0});r.n++;r.o+=+l.odds;r.i+=1/+l.odds;if(l.result==='win'){r.w++;r.u+=+l.odds}}
+  let ks=Object.keys(G);if(!ks.length)return'';
+  ks=order?ks.sort((a,b)=>order.indexOf(a)-order.indexOf(b)):ks.sort((a,b)=>G[b].n-G[a].n);
+  let h=`<h3>${title}</h3><div class="tbw"><table><tr><th>分組</th><th>單關數</th><th>命中</th><th>平均賠率</th><th>隱含機率</th><th>差距</th><th>單關回收</th></tr>`;
+  for(const k of ks){const r=G[k],a=r.w/r.n,i=r.i/r.n,d=a-i,ro=r.u/r.n;
+    h+=`<tr><td>${esc(k)}${r.n<10?'<span class="warn">樣本不足</span>':''}</td><td>${r.n}</td><td>${r.w} (${pct(a)})${mb(a)}</td><td>${(r.o/r.n).toFixed(2)}</td><td>${pct(i)}</td><td class="${d>=0?'win':'loss'}">${(d>=0?'+':'')+(d*100).toFixed(0)}%</td><td class="${ro>=1?'win':'loss'}">${pct(ro)}</td></tr>`}
+  return h+`</table></div><div class="sub" style="margin-top:6px">${note}</div>`;
+}
+const SPORT=l=>(l.sport==='NBA'||l.sport==='籃球')?'籃球（含 NBA）':l.sport||'其他';
+const BUCKET=l=>{const o=+l.odds;return o<1.3?'賠率 <1.30':o<1.6?'1.30–1.59':o<2?'1.60–1.99':o<3?'2.00–2.99':'3.00 以上'};
+const BORDER=['賠率 <1.30','1.30–1.59','1.60–1.99','2.00–2.99','3.00 以上'];
+// 正確比分：解析備註中的「估 x%」，做機率校準與 Brier / log loss
+function csCalib(T){
+  const E=[],seen=new Set();
+  for(const x of T)for(const l of x.legs||[]){
+    if(l.result!=='win'&&l.result!=='loss')continue;const m=String(l.note||'').match(/估\s*([\d.]+)%/);if(!m)continue;
+    const key=l.match+'|'+l.pick;if(seen.has(key))continue;seen.add(key);E.push([+m[1]/100,l.result==='win'?1:0])}
+  if(E.length<5)return'';
+  const n=E.length,ap=E.reduce((a,e)=>a+e[0],0)/n,ah=E.reduce((a,e)=>a+e[1],0)/n;
+  const br=E.reduce((a,e)=>a+(e[0]-e[1])**2,0)/n,ll=-E.reduce((a,e)=>a+Math.log(e[1]?e[0]:1-e[0]),0)/n;
+  const B=[[0,.06],[.06,.10],[.10,.15],[.15,1]];
+  let h=`<h3>正確比分：模型機率校準</h3><div class="note-box"><div>共 <b>${n}</b> 個已開獎比分：模型平均估計 <b>${pct(ap)}</b>，實際命中 <b class="${ah<ap?'loss':'win'}">${pct(ah)}</b>。Brier <b>${br.toFixed(4)}</b>、log loss <b>${ll.toFixed(3)}</b>。${ah<ap*0.7?'<b class="loss">機率明顯高估</b>，建議加收縮或改用市場機率混合。':''}</div></div>`;
+  h+=`<div class="tbw"><table><tr><th>估計機率區間</th><th>個數</th><th>平均估計</th><th>實際命中</th></tr>`;
+  for(const [a,b] of B){const g=E.filter(e=>e[0]>=a&&e[0]<b);if(!g.length)continue;const p=g.reduce((s,e)=>s+e[0],0)/g.length,h2=g.reduce((s,e)=>s+e[1],0)/g.length;
+    h+=`<tr><td>${a*100}–${b===1?'∞':b*100}%</td><td>${g.length}${g.length<10?'<span class="warn">樣本不足</span>':''}</td><td>${pct(p)}</td><td class="${h2>=p?'win':'loss'}">${pct(h2)}</td></tr>`}
+  return h+`</table></div><div class="sub" style="margin-top:6px">好的校準：實際命中 ≈ 平均估計。持續偏低代表模型過度自信（常見原因：挑 EV 最高的關 → 選到被高估的冷門）。</div>`;
+}
+// ===== 視覺化分析 =====
+function legsOf(T,perSource){
+  const seen=new Set(),out=[];
+  for(const x of T)for(const l of x.legs||[]){
+    if((l.result!=='win'&&l.result!=='loss')||!(+l.odds>1))continue;
+    const key=(perSource?x.source+'|':'')+l.match+'|'+l.market+'|'+l.pick;if(seen.has(key))continue;seen.add(key);
+    const m=String(l.note||'').match(/估\s*([\d.]+)%/);
+    out.push({s:x.source,sp:SPORT(l),b:BUCKET(l),mk:mkt(l.market),w:l.result==='win'?1:0,imp:1/+l.odds,est:m?+m[1]/100:null});
+  }
+  return out;
+}
+function aggBy(L,fn,xf){const G={};for(const e of L){const k=fn(e);if(k==null)continue;const g=G[k]||(G[k]={n:0,w:0,i:0});g.n++;g.w+=e.w;g.i+=xf(e)}return G}
+// 配對長條：灰＝預期（隱含或模型估計），彩色＝實際命中；綠＝實際高於預期，紅＝低於
+function pairBars(L,fn,order,title,note,xf){
+  xf=xf||(e=>e.imp);const G=aggBy(L,fn,xf);let ks=Object.keys(G);if(!ks.length)return'';
+  ks=order?ks.filter(k=>order.includes(k)).sort((a,b)=>order.indexOf(a)-order.indexOf(b)):ks.sort((a,b)=>G[b].n-G[a].n).slice(0,8);
+  let h=`<div class="vz"><h3>${title}</h3>`;
+  for(const k of ks){const g=G[k],a=g.w/g.n,i=g.i/g.n,d=a-i;
+    h+=`<div class="pb"><div class="pl">${esc(k)}<div class="sub">n=${g.n}${g.n<10?' ⚠':''}</div></div><div class="pbars"><div class="pbar"><i class="b-imp" style="width:${Math.min(100,i*100)}%"></i><span>預期 ${pct(i)}</span></div><div class="pbar"><i class="${d>=0?'b-win':'b-loss'}" style="width:${Math.min(100,a*100)}%"></i><span>實際 ${pct(a)}</span></div></div><div class="pdl ${d>=0?'win':'loss'}">${d>=0?'+':''}${(d*100).toFixed(0)}%</div></div>`}
+  return h+`<div class="sub">${note}</div></div>`;
+}
+function calibPts(L,xf,edges){
+  const out=[];for(let k=0;k<edges.length-1;k++){const g=L.filter(e=>xf(e)>=edges[k]&&xf(e)<edges[k+1]);if(g.length<3)continue;
+    out.push({x:g.reduce((a,e)=>a+xf(e),0)/g.length,y:g.reduce((a,e)=>a+e.w,0)/g.length,n:g.length})}
+  return out;
+}
+function calibSvg(pts,xl){
+  if(pts.length<2)return'<div class="sub">各區間樣本不足，暫時畫不出校準圖。</div>';
+  const W=320,H=300,L=40,R=12,Tp=10,B=40;
+  const top=Math.min(1,Math.ceil(Math.max(...pts.map(p=>Math.max(p.x,p.y)))*1.15*20)/20);
+  const X=v=>L+(W-L-R)*v/top,Y=v=>Tp+(H-Tp-B)*(1-v/top);
+  let g='';for(let i=0;i<=4;i++){const v=top*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-5}" y="${Y(v)+3}" text-anchor="end">${Math.round(v*100)}%</text><text x="${X(v)}" y="${H-B+14}" text-anchor="middle">${Math.round(v*100)}%</text>`}
+  g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(top)}" y2="${Y(top)}" class="ref" stroke="var(--muted)" stroke-width="1.5"/>`;
+  g+=`<text x="${(L+W-R)/2}" y="${H-6}" text-anchor="middle">${xl}</text><text x="10" y="${(Tp+H-B)/2}" transform="rotate(-90 10 ${(Tp+H-B)/2})" text-anchor="middle">實際命中</text>`;
+  const mx=Math.max(...pts.map(p=>p.n));
+  for(const p of pts){const d=p.y-p.x;g+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${(5+9*Math.sqrt(p.n/mx)).toFixed(1)}" fill="${d>=0?'var(--win)':'var(--loss)'}" fill-opacity=".55" stroke="${d>=0?'var(--win)':'var(--loss)'}"><title>預期 ${pct(p.x)}｜實際 ${pct(p.y)}｜${p.n} 關</title></circle>`}
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="校準圖">${g}</svg>`;
+}
+// 來源 × 運動項目 熱力圖：色階＝實際命中 − 隱含機率
+function heatMap(T,ks){
+  const L=legsOf(T,true),cnt={};L.forEach(e=>cnt[e.sp]=(cnt[e.sp]||0)+1);const sps=Object.keys(cnt).filter(k=>cnt[k]>=5).sort();if(sps.length<2)return'';
+  let h=`<div class="vz"><h3>來源 × 運動項目（單關命中，色階＝實際 − 隱含）</h3><div class="tbw"><table class="heat"><tr><th></th>`+sps.map(x=>`<th>${esc(x)}</th>`).join('')+`</tr>`;
+  for(const k of ks.split('')){h+=`<tr><th>${NAMES[k]}</th>`;
+    for(const sp of sps){const g=L.filter(e=>e.s===k&&e.sp===sp);
+      if(!g.length){h+=`<td class="empty">—</td>`;continue}
+      const a=g.reduce((x,e)=>x+e.w,0)/g.length,i=g.reduce((x,e)=>x+e.imp,0)/g.length,d=a-i,c=d>=0?'var(--win)':'var(--loss)';
+      h+=`<td style="background:color-mix(in srgb,${c} ${Math.min(55,Math.abs(d)*260).toFixed(0)}%,transparent)">${pct(a)}<small>${(d>=0?'+':'')+(d*100).toFixed(0)}%・n=${g.length}${g.length<8?' ⚠':''}</small></td>`}
+    h+=`</tr>`}
+  return h+`</table></div><div class="sub">⚠＝樣本少於 8 關，顏色僅供參考。</div></div>`;
+}
+// 逐場預測（D.matches）：每個來源的 Brier / log loss；沒有資料時提示
+function matchesViz(D){
+  if(!Array.isArray(D.matches)||!D.matches.length)
+    return`<div class="note-box pd"><div><b>尚未啟用逐場預測紀錄（matches）。</b>目前只能分析「被挑進串關的關」，帶有選擇偏誤；啟用後，這裡會顯示每個來源對所有場次的 Brier、log loss，才能真正比較誰準。格式見 IMPROVEMENTS.md。</div></div>`;
+  const M=D.matches.filter(m=>m.outcome&&m.probs),S={};
+  for(const m of M)for(const [src,p] of Object.entries(m.probs)){
+    if(!p||typeof p[m.outcome]!=='number')continue;
+    const br=Object.keys(p).reduce((a,k)=>a+(p[k]-(k===m.outcome?1:0))**2,0);
+    const r=S[src]||(S[src]={n:0,b:0,l:0});r.n++;r.b+=br;r.l+=-Math.log(Math.max(1e-6,p[m.outcome]))}
+  const rows=Object.entries(S).map(([k,r])=>({k,n:r.n,b:r.b/r.n,l:r.l/r.n})).sort((a,b)=>a.l-b.l);
+  if(!rows.length)return`<div class="note-box pd"><div>已記錄 <b>${D.matches.length}</b> 場預測，尚無賽果可評估。</div></div>`;
+  const mx=Math.max(...rows.map(r=>r.l)),base=rows.find(r=>r.k==='D');
+  let h=`<div class="vz"><h3>逐場預測評估（log loss，越短越準）</h3>`;
+  for(const r of rows){h+=`<div class="mrow"><div>${esc(NAMES[r.k]||r.k)}<div class="sub">n=${r.n}${r.n<200?' ⚠ 建議 ≥200':''}</div></div><div class="mtrk"><i style="width:${r.l/mx*100}%"></i>${base?`<u style="left:${base.l/mx*100}%" title="D 國外盤口基準"></u>`:''}</div><div class="mr">log loss <b>${r.l.toFixed(3)}</b>｜Brier <b>${r.b.toFixed(3)}</b></div></div>`}
+  return h+`<div class="sub">黑線＝D 國外盤口基準；長條比黑線短才算贏過盤口。Brier 為多類別版本（各選項機率與結果的平方誤差總和）。</div></div>`;
+}
+function vizSection(D,T,ks,pg){
+  const L=legsOf(T,false);if(L.length<5)return'';
+  const sc=pg==='score';
+  let h=`<div class="sec"><h2>視覺化分析</h2><span>單關・已去重</span></div><div class="panel"><div class="vgrid">`;
+  const pts=sc?calibPts(L.filter(e=>e.est!=null),e=>e.est,[0,.04,.07,.10,.14,1]):calibPts(L,e=>e.imp,[0,.3,.45,.55,.65,.75,.85,1.01]);
+  h+=`<div class="vz"><h3>校準圖</h3>${calibSvg(pts,sc?'模型估計機率':'賠率隱含機率')}<div class="sub">圓點在虛線上方＝實際比預期好（綠），下方＝被高估（紅）；圓越大樣本越多。</div></div>`;
+  if(sc){const bk=e=>e.est==null?null:e.est<.04?'估計 <4%':e.est<.07?'4–7%':e.est<.10?'7–10%':e.est<.14?'10–14%':'14% 以上';
+    h+=pairBars(L,bk,['估計 <4%','4–7%','7–10%','10–14%','14% 以上'],'估計機率區間：模型估計 vs 實際','灰＝模型估計機率，彩色＝實際命中。',e=>e.est==null?0:e.est)}
+  else h+=pairBars(L,e=>e.b,BORDER,'賠率區間：預期 vs 實際','灰＝賠率隱含機率，彩色＝實際命中。')+'';
+  h+=`</div><div class="vgrid">`+pairBars(L,e=>e.sp,null,'依運動項目','預期＝賠率隱含機率。')+pairBars(L,e=>e.mk,null,'依玩法','只列單關數最多的 8 種。')+`</div>`;
+  h+=heatMap(T,ks)+matchesViz(D);
+  return h+`</div>`;
+}
+// 實驗期間：優先用 data.period.{start,end}（YYYY-MM-DD），否則由所有串關的建立時間推算（台北時間）
+function periodText(D){
+  const tw=iso=>{const d=new Date(new Date(iso).getTime()+8*3600e3);return isNaN(d)?null:d.toISOString().slice(0,10)};
+  const all=['tickets','tickets2','tickets3','tickets4'].flatMap(k=>D[k]||[]).map(x=>x.created).filter(Boolean).sort();
+  const a=(D.period&&D.period.start)||(all.length&&tw(all[0])),b=(D.period&&D.period.end)||(all.length&&tw(all[all.length-1]));
+  if(!a)return'—';
+  return b&&b!==a?`${a} ～ ${b.slice(a.slice(0,4)===b.slice(0,4)?5:0)}`:a;
+}
 let adv=false;
 let filter='all', page='main';
 try{page=localStorage.getItem('page')||'main'}catch(e){}
@@ -216,7 +360,7 @@ function render(D){
   const nw=T.filter(x=>x.status==='win').length,nl=T.filter(x=>x.status==='loss').length,np=T.length-nw-nl,tl=T.length||1;
   const troi=tot.stake?tot.ret/tot.stake:null;
 
-  let h=`<div class="top"><div><h1>運彩模擬實驗</h1><div class="meta"><span>實驗期間 2026-11-07 ～ 11-13</span><span>最後更新 ${esc(D.lastRun||D.updated||'')}</span><span>每張 100 元・純模擬未下注</span></div></div></div>`;
+  let h=`<div class="top"><div><h1>運彩模擬實驗</h1><div class="meta"><span>實驗期間 ${periodText(D)}</span><span>最後更新 ${esc(D.lastRun||D.updated||'')}</span><span>每張 100 元・純模擬未下注</span></div></div></div>`;
   h+=`<div class="ptabs">`+Object.entries(PAGES).map(([k,v])=>`<button data-p="${k}" class="${page===k?'on':''}">${v.title}</button>`).join('')+`</div>`;
   if(page==='claude')h+=`<div class="desc">Claude 綜合所有資料來源（數據模型、國外盤口去水、專家共識、戰績）做判斷，不限玩法、每關賠率至少 1.30，每輪出 3 張 3 串 1：穩健（命中率最高）、平衡（命中率與期望值兼顧）、價值（期望值最高）；沒有夠好的選項時該張不出。</div>`;
   if(page==='score')h+=`<div class="desc">只買足球正確比分（波膽，90 分鐘含傷停），每張 2 串 1，五個來源各組一張。中獎機率很低、賠率很高，請多看「單關命中」而不是張數。</div>`;
@@ -248,6 +392,7 @@ function render(D){
   // 走勢圖
   h+=`<div class="sec"><h2>累計回收率走勢</h2><span>依輪次，只計已結算</span></div><div class="panel">`+(chart(T,ks)||'<div class="sub">結算輪次不足，無法畫圖。</div>')+`</div>`;
 
+  h+=vizSection(D,T,ks,page);
   // 進階分析
   h+=`<details class="adv" ${adv?'open':''}><summary>進階分析：明細、校準、風險、分歧場次、玩法</summary>`;
   h+=`<h3>明細表</h3><div class="tbw"><table><tr><th>來源</th><th>張數</th><th>已結算</th><th>中獎</th><th>單關命中</th><th>回收率</th></tr>`;
@@ -272,6 +417,9 @@ function render(D){
    h+=`<h3>依玩法拆分（單關）</h3><div class="tbw"><table><tr><th>玩法</th><th>單關數</th><th>命中</th><th>平均賠率</th><th>隱含機率</th><th>差距</th></tr>`;
    for(const [m,r] of ml){const a=r.w/r.n,i=r.i/r.n,d=a-i;h+=`<tr><td>${esc(m)}</td><td>${r.n}</td><td>${r.w} (${pct(a)})${mb(a)}</td><td>${(r.o/r.n).toFixed(2)}</td><td>${pct(i)}</td><td class="${d>=0?'win':'loss'}">${(d>=0?'+':'')+(d*100).toFixed(0)}%</td></tr>`}
    h+=`</table></div><div class="sub" style="margin-top:6px">玩法依盤口名稱歸類（大小 2.5／3.5…併為「大小」，讓分各線併為「讓分」）。單關數少的玩法差距參考價值低。</div>`}
+  h+=grpTable(T,SPORT,'依運動項目拆分（單關）','單關已去重（同場同選項只算一次）。「單關回收」＝平均每關賠率×命中率，等於 1 代表單關打平；各項目樣本小，僅供參考。');
+  h+=grpTable(T,BUCKET,'依賠率區間拆分（單關）','檢視模型在哪個賠率區間最失準：高賠率區間若命中率明顯低於隱含機率，代表冷門被高估。',BORDER);
+  if(page==='score')h+=csCalib(T);
   h+=`</details>`;
 
   // 串關清單

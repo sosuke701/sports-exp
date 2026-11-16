@@ -19,11 +19,13 @@ GitHub Pages 頁面內容以 AES-GCM 加密，需輸入密碼才能看。
   "id": "2026-11-11|兵工廠 vs 赫爾城|不讓分",
   "league": "epl", "start": "2026-11-11T23:00:00+08:00", "market": "不讓分(90分鐘)",
   "predictedAt": "2026-11-11T06:51:00+08:00",
-  "signals": { "A": 0.62, "B": 0.55, "C": "主勝", "D": 0.66, "E": null },
-  "claude": 0.64,
+  "probs": { "A": {"home":0.62,"draw":0.22,"away":0.16}, "D": {"home":0.66,"draw":0.21,"away":0.13} },
+  "claude": {"home":0.64,"draw":0.22,"away":0.14},
   "outcome": "home"
 }]
 ```
+
+（機率改為「完整分布」，避免單一數字不知道指哪一邊；完整說明見 IMPROVEMENTS.md。）
 
 - `predictedAt` 必須是賽前時間，且寫入後不可改（防止看到賽果後回填）。
 - `outcome` 賽後才補，其餘欄位寫入後不改。
